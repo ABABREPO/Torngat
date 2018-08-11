@@ -17,7 +17,6 @@
 		215A9C48201290D700510EF3 /* darkAbout.html in Resources */ = {isa = PBXBuildFile; fileRef = 215A9C47201290D700510EF3 /* darkAbout.html */; };
 		2183D3A3200802F9005D1DB3 /* Tag.zip in Resources */ = {isa = PBXBuildFile; fileRef = 2183D3A2200802F9005D1DB3 /* Tag.zip */; };
 		218E2D621FEEE5510068AA4D /* Circle.zip in Resources */ = {isa = PBXBuildFile; fileRef = 218E2D611FEEE5500068AA4D /* Circle.zip */; };
-		218E2DA01FEF01A60068AA4D /* Leaf.zip in Resources */ = {isa = PBXBuildFile; fileRef = 218E2D9F1FEF01A50068AA4D /* Leaf.zip */; };
 		2191F6B4200ED6A100371E4B /* about.html in Resources */ = {isa = PBXBuildFile; fileRef = 2191F6B3200ED6A100371E4B /* about.html */; };
 		21B4D11720393CF000F074B1 /* iPhoneProgressUI.zip in Resources */ = {isa = PBXBuildFile; fileRef = 21B4D11520393CEE00F074B1 /* iPhoneProgressUI.zip */; };
 		21B4D11820393CF000F074B1 /* iPadProgressUI.zip in Resources */ = {isa = PBXBuildFile; fileRef = 21B4D11620393CF000F074B1 /* iPadProgressUI.zip */; };
@@ -25,6 +24,7 @@
 		21B4D11C20394D0400F074B1 /* iPhoneDefault.zip in Resources */ = {isa = PBXBuildFile; fileRef = 21B4D11B20394D0400F074B1 /* iPhoneDefault.zip */; };
 		21CADD841FF9148E002D883F /* g.png in Resources */ = {isa = PBXBuildFile; fileRef = 21CADD831FF9148D002D883F /* g.png */; };
 		21E6142E1FFE765C0093D2C5 /* q.png in Resources */ = {isa = PBXBuildFile; fileRef = 21E6142D1FFE765C0093D2C5 /* q.png */; };
+		4A39E365211F6C2700893FDB /* PuffyCircle.zip in Resources */ = {isa = PBXBuildFile; fileRef = 4A39E364211F6C2600893FDB /* PuffyCircle.zip */; };
 		4A5A01EF211784DE00CB7F2B /* sploit.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A5A01E4211784DE00CB7F2B /* sploit.m */; };
 		4A5A01F1211784DE00CB7F2B /* post.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A5A01EA211784DE00CB7F2B /* post.m */; };
 		4A5A01F2211784DE00CB7F2B /* offsets.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A5A01EB211784DE00CB7F2B /* offsets.m */; };
@@ -81,7 +81,6 @@
 		216F0529200BBBAF00F4D06E /* enterprise_codesigning_credits.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = enterprise_codesigning_credits.h; sourceTree = "<group>"; };
 		2183D3A2200802F9005D1DB3 /* Tag.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = Tag.zip; sourceTree = "<group>"; };
 		218E2D611FEEE5500068AA4D /* Circle.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = Circle.zip; sourceTree = "<group>"; };
-		218E2D9F1FEF01A50068AA4D /* Leaf.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = Leaf.zip; sourceTree = "<group>"; };
 		2191F6B3200ED6A100371E4B /* about.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = about.html; sourceTree = "<group>"; };
 		21B4D11520393CEE00F074B1 /* iPhoneProgressUI.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = iPhoneProgressUI.zip; sourceTree = "<group>"; };
 		21B4D11620393CF000F074B1 /* iPadProgressUI.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = iPadProgressUI.zip; sourceTree = "<group>"; };
@@ -90,6 +89,8 @@
 		21CADD831FF9148D002D883F /* g.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = g.png; sourceTree = "<group>"; };
 		21E6142C1FFE67830093D2C5 /* add.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = add.h; sourceTree = "<group>"; };
 		21E6142D1FFE765C0093D2C5 /* q.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = q.png; sourceTree = "<group>"; };
+		4A39E363211F5C5500893FDB /* guionly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = guionly.h; sourceTree = "<group>"; };
+		4A39E364211F6C2600893FDB /* PuffyCircle.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = PuffyCircle.zip; sourceTree = "<group>"; };
 		4A5A01E4211784DE00CB7F2B /* sploit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = sploit.m; sourceTree = "<group>"; };
 		4A5A01E5211784DE00CB7F2B /* offsets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = offsets.h; sourceTree = "<group>"; };
 		4A5A01E7211784DE00CB7F2B /* patchfinder64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = patchfinder64.h; sourceTree = "<group>"; };
@@ -216,7 +217,7 @@
 			isa = PBXGroup;
 			children = (
 				218E2D611FEEE5500068AA4D /* Circle.zip */,
-				218E2D9F1FEF01A50068AA4D /* Leaf.zip */,
+				4A39E364211F6C2600893FDB /* PuffyCircle.zip */,
 				2183D3A2200802F9005D1DB3 /* Tag.zip */,
 				21B4D11620393CF000F074B1 /* iPadProgressUI.zip */,
 				21B4D11520393CEE00F074B1 /* iPhoneProgressUI.zip */,
@@ -395,8 +396,8 @@
 		B07A023B1FB09B6F0018ACE5 /* Torngat */ = {
 			isa = PBXGroup;
 			children = (
-				4A9552B82118D998006765C4 /* Post */,
 				B07A02451FB09B6F0018ACE5 /* Assets.xcassets */,
+				4A9552B82118D998006765C4 /* Post */,
 				4A5A01E3211784DE00CB7F2B /* empty_list */,
 				21F819662072720C009C01F2 /* Reachability */,
 				21F81965207271CA009C01F2 /* Torngat */,
@@ -404,6 +405,7 @@
 				21F81964207271B3009C01F2 /* GUI */,
 				4A5C69E220C826F500A2D859 /* Torngat.entitlements */,
 				B07A023A1FB09B6F0018ACE5 /* Products */,
+				4A39E363211F5C5500893FDB /* guionly.h */,
 			);
 			path = Torngat;
 			sourceTree = "<group>";
@@ -491,7 +493,7 @@
 				21B4D11720393CF000F074B1 /* iPhoneProgressUI.zip in Resources */,
 				21120D78200EBAF600158958 /* about.png in Resources */,
 				2159421A204B952500E8E0EE /* g.jpg in Resources */,
-				218E2DA01FEF01A60068AA4D /* Leaf.zip in Resources */,
+				4A39E365211F6C2700893FDB /* PuffyCircle.zip in Resources */,
 				B07A02441FB09B6F0018ACE5 /* Main.storyboard in Resources */,
 				211D8E81201556E100E22E6D /* services.png in Resources */,
 			);
