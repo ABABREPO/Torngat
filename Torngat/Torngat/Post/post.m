@@ -8,6 +8,7 @@
 #include <sys/mount.h>
 #include "offsetof.h"
 #include <UIKit/UIKit.h>
+#import "../guionly.h"
 #define SYSTEM_VERSION_EQUAL_TO(v) ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
 #define SYSTEM_VERSION_GREATER_THAN(v) ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v) ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
@@ -37,7 +38,6 @@
 #define CS_SIGNED 0x20000000  /* process has a signature (may have gone invalid) */
 #define CS_DEV_CODE 0x40000000  /* code is dev signed, cannot be loaded into prod signed code (will go away with rdar://problem/28322552) */
 BOOL remounted() {
-//#define guionly
 #ifndef guionly
     NSError *no;
     if ([[NSFileManager defaultManager] fileExistsAtPath:@"/.write_test"]) {
