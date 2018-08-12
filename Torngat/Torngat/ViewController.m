@@ -15,7 +15,6 @@
 //  Kernel Utilities - theninjaprawn
 //  patchfinder64 - xerub
 
-//#define guionly
 #import "ViewController.h"
 #include "kmem.h"
 #import "enterprise_codesigning_credits.h"
@@ -35,8 +34,11 @@
 #import "add.h"
 #include <spawn.h>
 #include <sys/sysctl.h>
+#import "guionly.h"
 
 NSString *___URL;
+
+NSString *springboard = @"/System/Library/CoreServices/SpringBoard.app";
 
 CGFloat bottomOfLowestContent(UIView *view) {
     CGFloat lowestPoint = 0.0;
@@ -260,8 +262,7 @@ NSString *stringWithContentsOfLocalFile(NSString *daName) {
     return [NSString stringWithContentsOfFile:[NSString stringWithFormat:@"%@/%@", documentsDirectory, daName] encoding:NSUTF8StringEncoding error:nil];
 }
 NSString *stringWithPathOfLocalFile(NSString *daName) {
-    getDocumentsDirectory();
-    return [NSString stringWithFormat:@"%@/%@", documentsDirectory, daName];
+    return [NSString stringWithFormat:@"%@/%@", getDocumentsDirectory(), daName];
 }
 BOOL darkModeIsEnabled(void) {
     getDocumentsDirectory();
@@ -278,8 +279,8 @@ void freeze() {
 void unfreeze() {
     kill(noU(keyValueForName(@"SpringBoard", PID_KEY)), SIGCONT);
 }
-NSString *versionNumber = @"Version 2.0.0";
-NSString *NSVN = @"2.0.0";
+NSString *versionNumber = @"Version 2.0.2";
+NSString *NSVN = @"2.0.2";
 
 NSString *bigFullscreenBoiTitle = @"Loading";
 NSString *bigFullscreenBoiText = @"Please Wait";
@@ -300,6 +301,15 @@ NSString *usedExploit = @"";
 @implementation ViewController
 
 int autoExploit = 0;
+
+- (void)urlScheme {
+    if (![___URL isEqual:@"NULL"] && ![___URL isEqual:@"(null)"]) {
+        NSString *____URL = [NSString stringWithFormat:@"%@", ___URL];
+        ___URL = @"NULL";
+        Done *vc = [[Done alloc] init];
+        [vc _urlScheme:____URL];
+    }
+}
 
 - (void)viewWillAppear:(BOOL)animated {
     if (SYSTEM_VERSION_LESS_THAN(@"11.0")) {
@@ -344,8 +354,13 @@ BOOL exploitationComplete = false;
     }
 }
 
+NSTimer *timer = nil;
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+    /* URL Schemes */
+    timer = [NSTimer scheduledTimerWithTimeInterval:1.0f target:self selector:@selector(urlScheme) userInfo:nil repeats:YES];
+    [timer fire];
     /*  View  */
     [_alert setHidden:YES];
     [_alert setAlpha:0.0f];
@@ -415,6 +430,8 @@ NSInteger btnMem = 0;
 void doNothing(int arg) { arg += 1; return; }
 - (IBAction)go:(id)sender {
 #ifdef guionly
+    [timer invalidate];
+    timer = nil;
     exploitationComplete = true;
     UIViewController *Done = [self.storyboard instantiateViewControllerWithIdentifier:@"Done"];
     [self presentViewController:Done animated:YES completion:nil];
@@ -446,10 +463,14 @@ void doNothing(int arg) { arg += 1; return; }
                     goto waitok;
                 }
                 if (skip) {
+                    [timer invalidate];
+                    timer = nil;
                     [self presentViewController:[self.storyboard instantiateViewControllerWithIdentifier:@"Done"] animated:YES completion:nil];
                     return;
                 }
                 if ([self exploit]) {
+                    [timer invalidate];
+                    timer = nil;
                     [self presentViewController:[self.storyboard instantiateViewControllerWithIdentifier:@"Done"] animated:YES completion:nil];
                     return;
                 }
@@ -539,7 +560,27 @@ BOOL applyingMask = false;
     }
 }
 
+#define spinAlert() {\
+UIAlertController *pending = [UIAlertController alertControllerWithTitle:nil message:@"Please Wait\n\n" preferredStyle:UIAlertControllerStyleAlert];\
+UIActivityIndicatorView *indicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];\
+indicator.color = [UIColor blackColor];\
+indicator.translatesAutoresizingMaskIntoConstraints=NO;\
+[pending.view addSubview:indicator];\
+NSDictionary *views = @{@"pending" : pending.view, @"indicator" : indicator};\
+NSArray *constraintsVertical = [NSLayoutConstraint constraintsWithVisualFormat:@"V:[indicator]-(20)-|" options:0 metrics:nil views:views];\
+NSArray *constraintsHorizontal = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|[indicator]|" options:0 metrics:nil views:views];\
+NSArray *constraints = [constraintsVertical arrayByAddingObjectsFromArray:constraintsHorizontal];\
+[pending.view addConstraints:constraints];\
+[indicator setUserInteractionEnabled:NO];\
+[indicator startAnimating];\
+[self presentViewController:pending animated:YES completion:nil];\
+}
+
 - (void)_urlScheme:(NSString *)url {
+    if (![url hasPrefix:@"torngat:/"]) {
+        return;
+    }
+    NSLog(@"got url scheme");
     url = [url substringFromIndex:7];
     url = [NSString stringWithFormat:@"torngat%@", url];
     while ([url hasPrefix:@"torngat:///"]) {
@@ -639,6 +680,8 @@ BOOL applyingMask = false;
             UIAlertAction *no = [UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleCancel handler:nil];
             UIAlertAction *yes = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
                 applyingMask = true;
+                spinAlert();
+                freeze();
                 NSData *urlData = [NSData dataWithContentsOfURL:[NSURL URLWithString:URL]];
                 if (urlData) {
                     [urlData writeToFile:@"/private/var/mobile/Torngat_TMP_Mask_Files.zip" atomically:YES];
@@ -649,7 +692,10 @@ BOOL applyingMask = false;
                         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Failed" message:@"The mask is corrupted." preferredStyle:UIAlertControllerStyleAlert];
                         UIAlertAction *action = [UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:nil];
                         [alert addAction:action];
-                        [self presentViewController:alert animated:YES completion:nil];
+                        unfreeze();
+                        [self.presentedViewController dismissViewControllerAnimated:YES completion:^{
+                            [self presentViewController:alert animated:YES completion:nil];
+                        }];
                         applyingMask = false;
                         return;
                     }
@@ -661,11 +707,12 @@ BOOL applyingMask = false;
                         if(isDir) {
                             NSArray *contentOfDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:oPath error:NULL];
                             int contentcount = (int)[contentOfDirectory count];
-                            int i;
-                            for(i = 0; i < contentcount; i++) {
+                            for(int i = 0; i < contentcount; i++) {
                                 NSString *fileName = [[contentOfDirectory objectAtIndex:i] stringByReplacingOccurrencesOfString:@"/" withString:@""];
-                                NSString *origPath = [NSString stringWithFormat:@"%@%@", oPath, fileName];
-                                if ([[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"/System/Library/PrivateFrameworks/MobileIcons.framework/%@", fileName] isDirectory:nil]) {
+                                BOOL isDir = false;
+                                BOOL ret = [[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"/System/Library/PrivateFrameworks/MobileIcons.framework/%@", fileName] isDirectory:&isDir];
+                                if (ret && !isDir) {
+                                    NSString *origPath = [NSString stringWithFormat:@"%@%@", oPath, fileName];
                                     [[NSFileManager defaultManager] removeItemAtPath:[NSString stringWithFormat:@"/System/Library/PrivateFrameworks/MobileIcons.framework/%@", fileName] error:nil];
                                     [[NSFileManager defaultManager] copyItemAtPath:origPath toPath:[NSString stringWithFormat:@"/System/Library/PrivateFrameworks/MobileIcons.framework/%@", fileName] error:nil];
                                 }
@@ -682,13 +729,17 @@ BOOL applyingMask = false;
                     }];
                     [alert addAction:dismiss];
                     if (!dontRespring) { [alert addAction:respring]; }
-                    [self presentViewController:alert animated:YES completion:nil];
+                    unfreeze();
+                    [self.presentedViewController dismissViewControllerAnimated:YES completion:^{
+                        [self presentViewController:alert animated:YES completion:nil];
+                    }];
                     applyingMask = false;
                 } else {
                     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Failed" message:@"No data was received." preferredStyle:UIAlertControllerStyleAlert];
                     UIAlertAction *action = [UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:nil];
                     [alert addAction:action];
-                    [self dismissViewControllerAnimated:YES completion:^{
+                    unfreeze();
+                    [self.presentedViewController dismissViewControllerAnimated:YES completion:^{
                         [self presentViewController:alert animated:YES completion:nil];
                     }];
                     applyingMask = false;
@@ -697,8 +748,13 @@ BOOL applyingMask = false;
             [alert addAction:no];
             [alert addAction:yes];
             [self presentViewController:alert animated:YES completion:nil];
-            if (self.presentingViewController && self.presentingViewController != alert) {
+            if (self.presentingViewController && self.presentedViewController != alert) {
                 [self.presentedViewController dismissViewControllerAnimated:YES completion:^{
+                    if (darkModeIsEnabled()) {
+                        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+                    } else {
+                        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+                    }
                     [self presentViewController:alert animated:YES completion:nil];
                 }];
             }
@@ -707,7 +763,7 @@ BOOL applyingMask = false;
 }
 
 - (void)urlScheme {
-    if (![___URL isEqual:@"NULL"]) {
+    if (![___URL isEqual:@"NULL"] && ![___URL isEqual:@"(null)"]) {
         NSString *____URL = [NSString stringWithFormat:@"%@", ___URL];
         ___URL = @"NULL";
         [self _urlScheme:____URL];
@@ -789,6 +845,7 @@ BOOL applyingMask = false;
         else
             [buttonIdentifier setTitleColor:hex(0x007AFF, 1.0) forState:UIControlStateNormal];
     }
+#ifndef guionly
     struct utsname u;
     uname(&u);
     NSString *device = [NSString stringWithFormat:@"%s", u.machine];
@@ -826,6 +883,7 @@ BOOL applyingMask = false;
         [_fontsview setAlpha:0.5f];
         [_ccview setAlpha:0.5f];
     }
+#endif
 }
 
 - (void)av:(UIView*)viewID {
@@ -1009,10 +1067,8 @@ BOOL applyingMask = false;
 }
 
 - (void)check {
-    if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd ocsp.apple.com oscp.apple.com"]) {
+    if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 ocsp.apple.com\n"]) {
         [_block setTitle:@"Unblock" forState:UIControlStateNormal];
-    } else if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd ocsp.apple.com oscp.apple.com"]) {
-        [_block setTitle:@"Block" forState:UIControlStateNormal];
     } else {
         [_block setTitle:@"Block" forState:UIControlStateNormal];
     }
@@ -1028,7 +1084,15 @@ BOOL applyingMask = false;
     btnId.exclusiveTouch = YES;
 }
 
+- (void)fixOld {
+    if (![[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"donteditthisentry.torngat.1gamerdev.rf.gd"]) return;
+    NSLog(@"%@", [NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil]);
+    [[[[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] stringByReplacingOccurrencesOfString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd ocsp.apple.com oscp.apple.com" withString:@"127.0.0.1 ocsp.apple.com\n"] stringByReplacingOccurrencesOfString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockrevokes.apple.com" withString:@""] writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    NSLog(@"%@", [NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil]);
+}
+
 - (void)viewWillAppear:(BOOL)animated {
+    [self fixOld];
     [self applyBtn:_block];
     [self applyBtn:_cancel];
     [self check];
@@ -1041,16 +1105,16 @@ BOOL applyingMask = false;
 }
 
 - (IBAction)block:(id)sender {
-    if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd ocsp.apple.com oscp.apple.com"]) {
-        [[[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] stringByReplacingOccurrencesOfString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd ocsp.apple.com oscp.apple.com" withString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockrevokes.apple.com"] writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 ocsp.apple.com\n"]) {
+        [[[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] stringByReplacingOccurrencesOfString:@"127.0.0.1 ocsp.apple.com\n" withString:@""] writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
         [self calert:@"Success" alertMessage:@"Enterprise revocations have been unblocked." dismissButton:@"Dismiss" buttonVis:2 dismissBtnAction:@selector(cancel:)];
         [self check];
-    } else if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockrevokes.apple.com"]) {
-        [[[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] stringByReplacingOccurrencesOfString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockrevokes.apple.com" withString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd ocsp.apple.com oscp.apple.com"] writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        [self calert:@"Success" alertMessage:@"Enterprise revocations have been blocked." dismissButton:@"Dismiss" buttonVis:2 dismissBtnAction:@selector(cancel:)];
-        [self check];
     } else {
-        NSString *str = [NSString stringWithFormat:@"%@\n127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd ocsp.apple.com oscp.apple.com", [NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil]];
+        NSString *b = @"\n";
+        if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] hasSuffix:@"\n"]) {
+            b = @"";
+        }
+        NSString *str = [NSString stringWithFormat:@"%@%@127.0.0.1 ocsp.apple.com\n", [NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil], b];
         [str writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
         [self calert:@"Success" alertMessage:@"Enterprise revocations have been blocked." dismissButton:@"Dismiss" buttonVis:2 dismissBtnAction:@selector(cancel:)];
         [self check];
@@ -1130,18 +1194,23 @@ BOOL applyingMask = false;
 - (void)check {
     if (!remounted()) {
         return;
-    } else {
-    if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd mesu.apple.com"]) {
-        [_block setTitle:@"Unblock" forState:UIControlStateNormal];
-    } else if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockupdates.apple.com"]) {
-        [_block setTitle:@"Block" forState:UIControlStateNormal];
-    } else {
-        [_block setTitle:@"Block" forState:UIControlStateNormal];
     }
+    if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 mesu.apple.com\n"]) {
+        [_block setTitle:@"Unblock" forState:UIControlStateNormal];
+    } else {
+        [_block setTitle:@"Block" forState:UIControlStateNormal];
     }
 }
 
+- (void)fixOld {
+    if (![[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"donteditthisentry.torngat.1gamerdev.rf.gd"]) return;
+    NSLog(@"%@", [NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil]);
+    [[[[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] stringByReplacingOccurrencesOfString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd mesu.apple.com" withString:@"127.0.0.1 mesu.apple.com\n"] stringByReplacingOccurrencesOfString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockupdates.apple.com" withString:@""] writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    NSLog(@"%@", [NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil]);
+}
+
 - (void)viewWillAppear:(BOOL)animated {
+    [self fixOld];
     [self applyBtn:_block];
     if (!remounted()) {
         [_block bgDisabledColour];
@@ -1159,16 +1228,16 @@ BOOL applyingMask = false;
 }
 
 - (IBAction)block:(id)sender {
-    if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd mesu.apple.com"]) {
-        [[[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] stringByReplacingOccurrencesOfString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd mesu.apple.com" withString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockupdates.apple.com"] writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 mesu.apple.com\n"]) {
+        [[[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] stringByReplacingOccurrencesOfString:@"127.0.0.1 mesu.apple.com\n" withString:@""] writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
         [self calert:@"Success" alertMessage:@"OTA Updates have been unblocked." dismissButton:@"Dismiss" buttonVis:2 dismissBtnAction:@selector(cancel:)];
         [self check];
-    } else if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] containsString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockupdates.apple.com"]) {
-        [[[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] stringByReplacingOccurrencesOfString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd disabledblockupdates.apple.com" withString:@"127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd mesu.apple.com"] writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
-        [self calert:@"Success" alertMessage:@"OTA Updates have been blocked." dismissButton:@"Dismiss" buttonVis:2 dismissBtnAction:@selector(cancel:)];
-        [self check];
     } else {
-        NSString *str = [NSString stringWithFormat:@"%@\n127.0.0.1 donteditthisentry.torngat.1gamerdev.rf.gd mesu.apple.com", [NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil]];
+        NSString *b = @"\n";
+        if ([[NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil] hasSuffix:@"\n"]) {
+            b = @"";
+        }
+        NSString *str = [NSString stringWithFormat:@"%@%@127.0.0.1 mesu.apple.com\n", [NSString stringWithContentsOfFile:@"/etc/hosts" encoding:NSUTF8StringEncoding error:nil], b];
         [str writeToFile:@"/etc/hosts" atomically:YES encoding:NSUTF8StringEncoding error:nil];
         [self calert:@"Success" alertMessage:@"OTA Updates have been blocked." dismissButton:@"Dismiss" buttonVis:2 dismissBtnAction:@selector(cancel:)];
         [self check];
@@ -1868,6 +1937,10 @@ NSString *resizeIdentifier;
     [self applyBtn:_cancel];
     [_respringBtn setHidden:YES];
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
+    if (noWiFi) {
+        [_custom bgDisabledColour];
+        [_custom setEnabled:NO];
+    }
     [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(checkWiFiC) userInfo:nil repeats:YES];
 }
 
@@ -1877,7 +1950,6 @@ NSString *resizeIdentifier;
 }
 
 - (void)applyMask:(NSString *)zipName {
-    NSLog(@"unzipping");
     [SSZipArchive unzipFileAtPath:[[NSBundle mainBundle] pathForResource:zipName ofType:@"zip"] toDestination:@"/private/var/mobile/Torngat_TMP_Mask_DIR/"];
     NSLog(@"moving files");
     [self moveFiles];
@@ -1900,7 +1972,7 @@ NSString *resizeIdentifier;
     } else if (selectedSegment == 1) {
         [self applyMask:@"Circle"];
     } else if (selectedSegment == 2) {
-        [self applyMask:@"Leaf"];
+        [self applyMask:@"PuffyCircle"];
     } else if (selectedSegment == 3) {
         [self applyMask:@"Tag"];
     } else {
@@ -1915,11 +1987,12 @@ NSString *resizeIdentifier;
     if(isDir) {
         NSArray *contentOfDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:oPath error:NULL];
         int contentcount = (int)[contentOfDirectory count];
-        int i;
-        for(i = 0; i < contentcount; i++) {
+        for(int i = 0; i < contentcount; i++) {
             NSString *fileName = [[contentOfDirectory objectAtIndex:i] stringByReplacingOccurrencesOfString:@"/" withString:@""];
-            NSString *origPath = [NSString stringWithFormat:@"%@%@", oPath, fileName];
-            if ([[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"/System/Library/PrivateFrameworks/MobileIcons.framework/%@", fileName] isDirectory:nil]) {
+            BOOL isDir = false;
+            BOOL ret = [[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"/System/Library/PrivateFrameworks/MobileIcons.framework/%@", fileName] isDirectory:&isDir];
+            if (ret && !isDir) {
+                NSString *origPath = [NSString stringWithFormat:@"%@%@", oPath, fileName];
                 [[NSFileManager defaultManager] removeItemAtPath:[NSString stringWithFormat:@"/System/Library/PrivateFrameworks/MobileIcons.framework/%@", fileName] error:nil];
                 [[NSFileManager defaultManager] copyItemAtPath:origPath toPath:[NSString stringWithFormat:@"/System/Library/PrivateFrameworks/MobileIcons.framework/%@", fileName] error:nil];
             }
@@ -2118,32 +2191,18 @@ NSString *resizeIdentifier;
     [_revert setBackgroundColor:hex(0x007AFF, 1.0)];
 }
 
-- (void)checkWiFiC {
-    if (noWiFi) {
-        [UIView animateWithDuration:0.5f animations:^{
-            [_change bgDisabledColour];
-        }];
-        [_change setEnabled:NO];
-    } else {
-        [UIView animateWithDuration:0.5f animations:^{
-            [_change bgBlueColour];
-        }];
-        [_change setEnabled:YES];
-    }
-}
-
 - (void)viewWillAppear:(BOOL)animated {
     [self applyBtn:_revert];
     [self applyBtn:_change];
     [self applyBtn:_cancel];
     [self revertBtn];
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
     UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(customImage:)];
     [_change addGestureRecognizer:longPress];
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
-    [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(checkWiFiC) userInfo:nil repeats:YES];
 }
 
 - (IBAction)customImage:(id)sender {
+    if (noWiFi && sender != _change) return;
     UIImagePickerController *pickerController = [[UIImagePickerController alloc] init];
     pickerController.delegate = self;
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
@@ -2151,7 +2210,7 @@ NSString *resizeIdentifier;
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingImage:(UIImage *)image editingInfo:(NSDictionary *)editingInfo {
-    if([stringWithContentsOfLocalFile(@"resizeBootlogos") isEqual: @"yes"]) {
+    if([stringWithContentsOfLocalFile(@"resizeBootlogos") isEqual:@"yes"]) {
         [self writeBootlogoWithSize:UIImagePNGRepresentation(image)];
         [self doneWaiting];
         [self calert:@"Success" alertMessage:@"Your bootlogo was successfully changed." dismissButton:@"Dismiss" buttonVis:2 dismissBtnAction:@selector(cancel:)];
@@ -2241,6 +2300,10 @@ NSString *resizeIdentifier;
 }
 
 - (IBAction)change:(id)sender {
+    if (noWiFi) {
+        [self customImage:sender];
+        return;
+    }
     [self waitK];
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         if ([stringWithContentsOfLocalFile(@"showLoader") isEqual: @"yes"]) { [NSThread sleepForTimeInterval:0.5f]; }
@@ -2420,6 +2483,7 @@ NSTimer *timer;
             if (noWiFi) {
                 return;
             } else {
+                NSLog(@"got wifi, updating...");
                 dispatch_async(dispatch_get_global_queue(0,0), ^{
                     imageData = [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString:exploitDevIconURL]];
                     dispatch_async(dispatch_get_main_queue(), ^{
@@ -2474,8 +2538,6 @@ NSTimer *timer;
                         });
                     });
                 });
-                [timer invalidate];
-                timer = nil;
             }}
     }
 }
@@ -2713,7 +2775,9 @@ NSTimer *timer;
 
 - (void)checkWiFiC {
     [self canRevert];
-    if (noWiFi) {
+    Reachability *reachability = [Reachability reachabilityForInternetConnection];
+    [reachability startNotifier];
+    if (noWiFi || [reachability currentReachabilityStatus] == ReachableViaWWAN) {
         [UIView animateWithDuration:0.5f animations:^{
             [_change bgDisabledColour];
         }];
@@ -2741,6 +2805,12 @@ NSInteger emoji = -1;
     [self applyBtn:_cancel];
     [self applyBtn:_revertBtn];
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
+    Reachability *reachability = [Reachability reachabilityForInternetConnection];
+    [reachability startNotifier];
+    if (noWiFi || [reachability currentReachabilityStatus] == ReachableViaWWAN) {
+        [_change bgDisabledColour];
+        [_change setEnabled:NO];
+    }
     [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(checkWiFiC) userInfo:nil repeats:YES];
 }
 
@@ -3877,9 +3947,16 @@ int lc(const char *colour, BOOL transparent) {
     [self applyBtn:_cancel];
     getDocumentsDirectory();
     BOOL isDir;
-    if (![[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"%@/layouts/", documentsDirectory] isDirectory:&isDir]) {
+    BOOL ret = [[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithFormat:@"%@/layouts/", documentsDirectory] isDirectory:&isDir];
+    NSLog(@"%i", ret); NSLog(@"%i", isDir);
+    if (!isDir) {
+        removeLocalFile(@"layouts");
         createLocalDirectory(@"layouts");
+        chmod(stringWithPathOfLocalFile(@"layout").UTF8String, 0666);
+        chown(stringWithPathOfLocalFile(@"layout").UTF8String, 501, 501);
     }
+    chmod(stringWithPathOfLocalFile(@"layout").UTF8String, 0666);
+    chown(stringWithPathOfLocalFile(@"layout").UTF8String, 501, 501);
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
     [self configureTableview];
     self.content = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[NSString stringWithFormat:@"%@/layouts/", documentsDirectory] error:nil];
@@ -3958,9 +4035,21 @@ NSString *b;
     [dateFormatter setDateFormat:@"yyyy-MM-dd_hh:mm:ss"];
     NSString *d = [NSString stringWithFormat:@"%@", [dateFormatter stringFromDate:[NSDate date]]];
     printf("name: %s\n", d.UTF8String);
+#ifndef guionly
     [[NSMutableDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/SpringBoard/IconState.plist"] writeToFile:stringWithPathOfLocalFile([NSString stringWithFormat:@"layouts/%@", d]) atomically:YES];
+    chown(stringWithPathOfLocalFile([NSString stringWithFormat:@"layouts/%@", d]).UTF8String, 501, 501);
+    chmod(stringWithPathOfLocalFile([NSString stringWithFormat:@"layouts/%@", d]).UTF8String, 0666);
+#else
+    NSLog(@"write test");
+    NSError *e;
+    [@"test" writeToFile:stringWithPathOfLocalFile([NSString stringWithFormat:@"layouts/%@", d]) atomically:YES encoding:NSUTF8StringEncoding error:&e];
+    NSLog(@"%@", e);
+    NSLog(@"%@", stringWithContentsOfLocalFile([NSString stringWithFormat:@"layouts/%@", d]));
+    chown(stringWithPathOfLocalFile([NSString stringWithFormat:@"layouts/%@", d]).UTF8String, 501, 501);
+    chmod(stringWithPathOfLocalFile([NSString stringWithFormat:@"layouts/%@", d]).UTF8String, 0666);
+#endif
     NSLog(@"%@", [NSMutableDictionary dictionaryWithContentsOfFile:stringWithPathOfLocalFile([NSString stringWithFormat:@"layouts/%@", d])]);
-    self.content = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[NSString stringWithFormat:@"%@/layouts/", documentsDirectory] error:nil];
+    self.content = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:stringWithPathOfLocalFile(@"layouts") error:nil];
     NSLog(@"%@", _content);
     [self.table reloadData];
 }
