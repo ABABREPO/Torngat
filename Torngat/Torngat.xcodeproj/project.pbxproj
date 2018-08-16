@@ -25,6 +25,8 @@
 		21CADD841FF9148E002D883F /* g.png in Resources */ = {isa = PBXBuildFile; fileRef = 21CADD831FF9148D002D883F /* g.png */; };
 		21E6142E1FFE765C0093D2C5 /* q.png in Resources */ = {isa = PBXBuildFile; fileRef = 21E6142D1FFE765C0093D2C5 /* q.png */; };
 		4A39E365211F6C2700893FDB /* PuffyCircle.zip in Resources */ = {isa = PBXBuildFile; fileRef = 4A39E364211F6C2600893FDB /* PuffyCircle.zip */; };
+		4A45F0612124A68D00890189 /* Remover.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A45F0602124A68D00890189 /* Remover.m */; };
+		4A45F0642124AB6600890189 /* DefaultModuleSettings.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4A45F0632124AB6600890189 /* DefaultModuleSettings.plist */; };
 		4A5A01EF211784DE00CB7F2B /* sploit.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A5A01E4211784DE00CB7F2B /* sploit.m */; };
 		4A5A01F1211784DE00CB7F2B /* post.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A5A01EA211784DE00CB7F2B /* post.m */; };
 		4A5A01F2211784DE00CB7F2B /* offsets.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A5A01EB211784DE00CB7F2B /* offsets.m */; };
@@ -91,6 +93,9 @@
 		21E6142D1FFE765C0093D2C5 /* q.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = q.png; sourceTree = "<group>"; };
 		4A39E363211F5C5500893FDB /* guionly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = guionly.h; sourceTree = "<group>"; };
 		4A39E364211F6C2600893FDB /* PuffyCircle.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = PuffyCircle.zip; sourceTree = "<group>"; };
+		4A45F0602124A68D00890189 /* Remover.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Remover.m; sourceTree = "<group>"; };
+		4A45F0622124A69600890189 /* Remover.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Remover.h; sourceTree = "<group>"; };
+		4A45F0632124AB6600890189 /* DefaultModuleSettings.plist */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = DefaultModuleSettings.plist; sourceTree = "<group>"; };
 		4A5A01E4211784DE00CB7F2B /* sploit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = sploit.m; sourceTree = "<group>"; };
 		4A5A01E5211784DE00CB7F2B /* offsets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = offsets.h; sourceTree = "<group>"; };
 		4A5A01E7211784DE00CB7F2B /* patchfinder64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = patchfinder64.h; sourceTree = "<group>"; };
@@ -160,8 +165,6 @@
 		4A9552A82118C91D006765C4 /* ku.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ku.h; sourceTree = "<group>"; };
 		4A9552AA2118CBF3006765C4 /* libcompression.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcompression.tbd; path = usr/lib/libcompression.tbd; sourceTree = SDKROOT; };
 		4A9552AC2118CBF9006765C4 /* libMobileGestalt.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libMobileGestalt.tbd; path = usr/lib/libMobileGestalt.tbd; sourceTree = SDKROOT; };
-		4A9552AE2118CF96006765C4 /* libMobileGestalt.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libMobileGestalt.tbd; path = Torngat/remount/libs/libMobileGestalt.tbd; sourceTree = "<group>"; };
-		4A9552B02118CFA2006765C4 /* libcompression.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libcompression.tbd; path = Torngat/remount/libs/libcompression.tbd; sourceTree = "<group>"; };
 		4A9552B22118D108006765C4 /* libcompression.tbd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.text-based-dylib-definition"; path = libcompression.tbd; sourceTree = "<group>"; };
 		4A9552B32118D108006765C4 /* libMobileGestalt.tbd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.text-based-dylib-definition"; path = libMobileGestalt.tbd; sourceTree = "<group>"; };
 		B07A02391FB09B6F0018ACE5 /* Torngat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Torngat.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -223,6 +226,7 @@
 				21B4D11520393CEE00F074B1 /* iPhoneProgressUI.zip */,
 				21B4D11920394CFC00F074B1 /* iPadDefault.zip */,
 				21B4D11B20394D0400F074B1 /* iPhoneDefault.zip */,
+				4A45F0632124AB6600890189 /* DefaultModuleSettings.plist */,
 				B07A023F1FB09B6F0018ACE5 /* ViewController.h */,
 				B07A02401FB09B6F0018ACE5 /* ViewController.m */,
 				216F0529200BBBAF00F4D06E /* enterprise_codesigning_credits.h */,
@@ -231,6 +235,8 @@
 				B07A023D1FB09B6F0018ACE5 /* AppDelegate.m */,
 				B07A024A1FB09B6F0018ACE5 /* Info.plist */,
 				B07A024B1FB09B6F0018ACE5 /* main.m */,
+				4A45F0602124A68D00890189 /* Remover.m */,
+				4A45F0622124A69600890189 /* Remover.h */,
 			);
 			name = Torngat;
 			sourceTree = "<group>";
@@ -368,9 +374,7 @@
 		4A98B18520F547EF00DE9D04 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				4A9552B02118CFA2006765C4 /* libcompression.tbd */,
 				4A9552AC2118CBF9006765C4 /* libMobileGestalt.tbd */,
-				4A9552AE2118CF96006765C4 /* libMobileGestalt.tbd */,
 				4A9552AA2118CBF3006765C4 /* libcompression.tbd */,
 			);
 			name = Frameworks;
@@ -478,6 +482,7 @@
 			files = (
 				21120D76200EB4F700158958 /* settings.png in Resources */,
 				21B4D11820393CF000F074B1 /* iPadProgressUI.zip in Resources */,
+				4A45F0642124AB6600890189 /* DefaultModuleSettings.plist in Resources */,
 				21CADD841FF9148E002D883F /* g.png in Resources */,
 				218E2D621FEEE5510068AA4D /* Circle.zip in Resources */,
 				215A9C48201290D700510EF3 /* darkAbout.html in Resources */,
@@ -538,6 +543,7 @@
 				4A5A02292117EFDB00CB7F2B /* aescrypt.c in Sources */,
 				4A5A01F3211784DE00CB7F2B /* patchfinder64.c in Sources */,
 				4A5A022C2117EFDB00CB7F2B /* aes_ni.c in Sources */,
+				4A45F0612124A68D00890189 /* Remover.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
