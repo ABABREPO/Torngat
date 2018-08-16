@@ -10,6 +10,7 @@ extern BOOL exploitationComplete;
 
 @interface Done : UIViewController
 @property (strong, nonatomic) IBOutlet UIView *X;
+- (void)_urlScheme:(NSString *)url;
 @end
 
 @interface tweaksView : UIViewController

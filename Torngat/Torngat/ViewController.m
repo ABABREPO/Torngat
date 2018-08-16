@@ -7,6 +7,8 @@
  *
  */
 
+//  COMING SOON - Code Cleanup
+
 //  Credits:
 //  Torngat - 1GamerDev
 //  empty_list - Ian Beer
@@ -35,6 +37,7 @@
 #include <spawn.h>
 #include <sys/sysctl.h>
 #import "guionly.h"
+#include "Remover.h"
 
 NSString *___URL;
 
@@ -238,8 +241,7 @@ BOOL file_exist(char *file) {
 BOOL dontRespring = FALSE;
 NSString *documentsDirectory;
 NSString *getDocumentsDirectory() {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains
-    (NSDocumentDirectory, NSUserDomainMask, YES);
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     documentsDirectory = [paths objectAtIndex:0];
     return documentsDirectory;
 }
@@ -279,8 +281,8 @@ void freeze() {
 void unfreeze() {
     kill(noU(keyValueForName(@"SpringBoard", PID_KEY)), SIGCONT);
 }
-NSString *versionNumber = @"Version 2.0.2";
-NSString *NSVN = @"2.0.2";
+NSString *versionNumber = @"Version 2.1.0";
+NSString *NSVN = @"2.1.0";
 
 NSString *bigFullscreenBoiTitle = @"Loading";
 NSString *bigFullscreenBoiText = @"Please Wait";
@@ -312,6 +314,8 @@ int autoExploit = 0;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
+    NSLog(@"%@", getDocumentsDirectory());
+    NSLog(@"%@", [[NSBundle mainBundle] bundlePath]);
     if (SYSTEM_VERSION_LESS_THAN(@"11.0")) {
         exit(0);
     }
@@ -337,7 +341,16 @@ BOOL exploitationComplete = false;
     if (getuid() == 0 && weAreUnsandboxed() && remounted()) {
         return true;
     }
-    mach_port_t tfp0;
+    mach_port_t tfp0 = 0;
+    host_get_special_port(mach_host_self(), HOST_LOCAL_NODE, 4, &tfp0);  // just in case
+    printf("tfp0: %i\n", tfp0);
+    if (tfp0 != 0 && tfp0 != -1) {
+        if (post_exploitation(tfp0)) {
+            exploitationComplete = true;
+            return true;
+        }
+        return false;
+    }
     if ([usedExploit isEqual:@"empty_list"]) {
         tfp0 = run_empty_list();
     } else {
@@ -433,6 +446,11 @@ void doNothing(int arg) { arg += 1; return; }
     [timer invalidate];
     timer = nil;
     exploitationComplete = true;
+    if (darkModeIsEnabled()) {
+        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    } else {
+        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+    }
     UIViewController *Done = [self.storyboard instantiateViewControllerWithIdentifier:@"Done"];
     [self presentViewController:Done animated:YES completion:nil];
     return;
@@ -465,12 +483,22 @@ void doNothing(int arg) { arg += 1; return; }
                 if (skip) {
                     [timer invalidate];
                     timer = nil;
+                    if (darkModeIsEnabled()) {
+                        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+                    } else {
+                        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+                    }
                     [self presentViewController:[self.storyboard instantiateViewControllerWithIdentifier:@"Done"] animated:YES completion:nil];
                     return;
                 }
                 if ([self exploit]) {
                     [timer invalidate];
                     timer = nil;
+                    if (darkModeIsEnabled()) {
+                        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+                    } else {
+                        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+                    }
                     [self presentViewController:[self.storyboard instantiateViewControllerWithIdentifier:@"Done"] animated:YES completion:nil];
                     return;
                 }
@@ -1324,16 +1352,13 @@ NSArray *constraints = [constraintsVertical arrayByAddingObjectsFromArray:constr
     [self applyBtn:_change];
     [self applyBtn:_cancel];
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
-    CGRect screenRect = [[UIScreen mainScreen] bounds];
-    CGFloat screenWidth = screenRect.size.width;
-    CGFloat screenHeight = screenRect.size.height;
     if (file_exist("/var/mobile/Library/Preferences/com.apple.iokit.IOMobileGraphicsFamily.plist")) {
         NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:@"/var/mobile/Library/Preferences/com.apple.iokit.IOMobileGraphicsFamily.plist"];
         _w.text = [NSString stringWithFormat:@"%@", [d valueForKey:@"canvas_width"]];
         _h.text = [NSString stringWithFormat:@"%@", [d valueForKey:@"canvas_height"]];
     } else {
-        _w.text = [NSString stringWithFormat:@"%i", (int)screenWidth];
-        _h.text = [NSString stringWithFormat:@"%i", (int)screenHeight];
+        _w.text = [NSString stringWithFormat:@"Width"];
+        _h.text = [NSString stringWithFormat:@"Height"];
     }
 }
 
@@ -1366,7 +1391,6 @@ NSArray *constraints = [constraintsVertical arrayByAddingObjectsFromArray:constr
         width = [width stringByReplacingOccurrencesOfString:@"px" withString:@""];
         height = [height stringByReplacingOccurrencesOfString:@"px" withString:@""];
         NSString *res = [NSString stringWithFormat:@"<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>canvas_height</key><integer>%@</integer><key>canvas_width</key><integer>%@</integer></dict></plist>", height, width];
-        [res writeToFile:@"/var/mobile/Library/Preferences/com.apple.iokit.IOMobileGraphicsFamily.plist" atomically:YES];
         [self calertd];
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             [NSThread sleepForTimeInterval:0.6f];
@@ -1382,8 +1406,8 @@ NSArray *constraints = [constraintsVertical arrayByAddingObjectsFromArray:constr
     NSString *height = _h.text;
     width = [width stringByReplacingOccurrencesOfString:@"px" withString:@""];
     height = [height stringByReplacingOccurrencesOfString:@"px" withString:@""];
-    if (width != NULL && height != NULL && ![width isEqual: @""] && ![height  isEqual: @""]) {
-        NSCharacterSet* notDigits = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
+    if (width != NULL && height != NULL && ![width isEqual: @""] && ![height isEqual: @""]) {
+        NSCharacterSet *notDigits = [[NSCharacterSet decimalDigitCharacterSet] invertedSet];
         if ([width rangeOfCharacterFromSet:notDigits].location == NSNotFound && [height rangeOfCharacterFromSet:notDigits].location == NSNotFound) {
             if (![width containsString:@"."] && ![height containsString:@"."]) {
                 [self calert:@"Confirmation" alertMessage:@"Changing your resolution may cause unintended side-effects or even stop your device from functioning.  Are you sure you'd like to continue?  (Please make sure you have a backup of your data, because if something goes wrong, you'll have to restore your device via iCloud then load the backup)" dismissButton:@"Continue" buttonVis:2 dismissBtnAction:@selector(continueChangeRes)];
@@ -3479,10 +3503,25 @@ UIImage *badge;
 @property (strong, nonatomic) IBOutlet UITableViewCell *exploitAutomaticallyCell;
 @property (strong, nonatomic) IBOutlet UITableViewCell *resizeCell;
 @property (strong, nonatomic) IBOutlet UILabel *resizeText;
+@property (weak, nonatomic) IBOutlet UITableViewCell *removeCell;
+@property (weak, nonatomic) IBOutlet UIButton *removeButton;
 
 @end
 
 @implementation settings
+
+- (IBAction)remove:(id)sender {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Remove" message:@"Do you really want to remove Torngat?" preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *yes = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        if ([Remover remove]) {
+            respringDevice();
+        }
+    }];
+    UIAlertAction *no = [UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleCancel handler:nil];
+    [alert addAction:yes];
+    [alert addAction:no];
+    [self presentViewController:alert animated:YES completion:nil];
+}
 
 - (void)viewWillAppear:(BOOL)animated {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(svs) name:@"sVS" object:nil];
@@ -3510,35 +3549,8 @@ UIImage *badge;
     } else {
         [_resizeBootlogosSwitch setOn:NO animated:NO];
     }
-    if (darkModeIsEnabled()) {
-        [self.navigationController.navigationBar setValue:@(YES) forKeyPath:@"hidesShadow"];
-        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
-        [self.parentViewController.navigationController.navigationBar setBarStyle:UIBarStyleBlack];
-        [self.parentViewController.navigationController.navigationBar setBarTintColor:hex(0x1B2737, 1.0)];
-        [self.view setBackgroundColor:hex(0x151E29, 1.0)];
-        _darkModeText.textColor = [UIColor whiteColor];
-        _loadingSpinnerText.textColor = [UIColor whiteColor];
-        _exploitAutomaticallyText.textColor = [UIColor whiteColor];
-        _resizeText.textColor = [UIColor whiteColor];
-        _darkModeCell.backgroundColor = hex(0x151E29, 1.0);
-        _loadingSpinnerCell.backgroundColor = hex(0x151E29, 1.0);
-        _exploitAutomaticallyCell.backgroundColor = hex(0x151E29, 1.0);
-        _resizeCell.backgroundColor = hex(0x151E29, 1.0);
-    } else {
-        [self.navigationController.navigationBar setValue:@(YES) forKeyPath:@"hidesShadow"];
-        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault animated:YES];
-        [self.parentViewController.navigationController.navigationBar setBarStyle:UIBarStyleDefault];
-        [self.parentViewController.navigationController.navigationBar setBarTintColor:hex(0xF2F2F2, 1.0)];
-        [self.view setBackgroundColor:hex(0xFAFAFA, 1.0)];
-        _darkModeText.textColor = [UIColor blackColor];
-        _loadingSpinnerText.textColor = [UIColor blackColor];
-        _exploitAutomaticallyText.textColor = [UIColor blackColor];
-        _resizeText.textColor = [UIColor blackColor];
-        _darkModeCell.backgroundColor = hex(0xFAFAFA, 1.0);
-        _loadingSpinnerCell.backgroundColor = hex(0xFAFAFA, 1.0);
-        _exploitAutomaticallyCell.backgroundColor = hex(0xFAFAFA, 1.0);
-        _resizeCell.backgroundColor = hex(0xFAFAFA, 1.0);
-    }
+    [self.navigationController.navigationBar setValue:@(YES) forKeyPath:@"hidesShadow"];
+    [self svs];
     if (!remounted()) {
         [_resizeBootlogosSwitch setEnabled:NO];
         [_resizeText setTextColor:[UIColor grayColor]];
@@ -3547,30 +3559,33 @@ UIImage *badge;
 }
 
 - (void)svs {
+    [self.navigationController.navigationBar setValue:@(YES) forKeyPath:@"hidesShadow"];
     if (darkModeIsEnabled()) {
         [self.parentViewController.navigationController.navigationBar setBarStyle:UIBarStyleBlack];
         [self.parentViewController.navigationController.navigationBar setBarTintColor:hex(0x1B2737, 1.0)];
         [self.view setBackgroundColor:hex(0x151E29, 1.0)];
-        _darkModeText.textColor = [UIColor whiteColor];
-        _loadingSpinnerText.textColor = [UIColor whiteColor];
-        _exploitAutomaticallyText.textColor = [UIColor whiteColor];
-        _resizeText.textColor = [UIColor whiteColor];
+        _darkModeText.textColor = [UIColor lightTextColor];
+        _loadingSpinnerText.textColor = [UIColor lightTextColor];
+        _exploitAutomaticallyText.textColor = [UIColor lightTextColor];
+        _resizeText.textColor = [UIColor lightTextColor];
         _darkModeCell.backgroundColor = hex(0x151E29, 1.0);
         _loadingSpinnerCell.backgroundColor = hex(0x151E29, 1.0);
         _exploitAutomaticallyCell.backgroundColor = hex(0x151E29, 1.0);
         _resizeCell.backgroundColor = hex(0x151E29, 1.0);
+        _removeCell.backgroundColor = hex(0x151E29, 1.0);
     } else {
         [self.parentViewController.navigationController.navigationBar setBarStyle:UIBarStyleDefault];
         [self.parentViewController.navigationController.navigationBar setBarTintColor:hex(0xF2F2F2, 1.0)];
         [self.view setBackgroundColor:hex(0xFAFAFA, 1.0)];
-        _darkModeText.textColor = [UIColor blackColor];
-        _loadingSpinnerText.textColor = [UIColor blackColor];
-        _exploitAutomaticallyText.textColor = [UIColor blackColor];
-        _resizeText.textColor = [UIColor blackColor];
+        _darkModeText.textColor = [UIColor darkTextColor];
+        _loadingSpinnerText.textColor = [UIColor darkTextColor];
+        _exploitAutomaticallyText.textColor = [UIColor darkTextColor];
+        _resizeText.textColor = [UIColor darkTextColor];
         _darkModeCell.backgroundColor = hex(0xFAFAFA, 1.0);
         _loadingSpinnerCell.backgroundColor = hex(0xFAFAFA, 1.0);
         _exploitAutomaticallyCell.backgroundColor = hex(0xFAFAFA, 1.0);
         _resizeCell.backgroundColor = hex(0xFAFAFA, 1.0);
+        _removeCell.backgroundColor = hex(0xFAFAFA, 1.0);
     }
 }
 
@@ -3589,6 +3604,7 @@ UIImage *badge;
         _loadingSpinnerCell.backgroundColor = hex(0x151E29, 1.0);
         _exploitAutomaticallyCell.backgroundColor = hex(0x151E29, 1.0);
         _resizeCell.backgroundColor = hex(0x151E29, 1.0);
+        _removeCell.backgroundColor = hex(0x151E29, 1.0);
     }];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"updatedVisualStyle" object:self];
 }
@@ -3608,6 +3624,7 @@ UIImage *badge;
         _loadingSpinnerCell.backgroundColor = hex(0xFAFAFA, 1.0);
         _exploitAutomaticallyCell.backgroundColor = hex(0xFAFAFA, 1.0);
         _resizeCell.backgroundColor = hex(0xFAFAFA, 1.0);
+        _removeCell.backgroundColor = hex(0xFAFAFA, 1.0);
     }];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"updatedVisualStyle" object:self];
 }
